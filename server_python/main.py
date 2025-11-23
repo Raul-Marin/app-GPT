@@ -278,12 +278,13 @@ async def get_card():
     return HTMLResponse(content=card_html)
 
 
-# Endpoints compatibles con MCP (simplificados pero correctos)
+# Endpoints compatibles con MCP (formato oficial OpenAI)
 @app.post("/mcp")
 async def mcp_handler(request: Dict[str, Any]):
     """
     Manejador principal MCP - Compatible con ChatGPT
     Recibe mensajes en formato JSON-RPC 2.0
+    Formato oficial según la documentación de OpenAI Apps SDK
     """
     method = request.get("method", "")
     params = request.get("params", {})
@@ -297,7 +298,8 @@ async def mcp_handler(request: Dict[str, Any]):
             "result": {
                 "protocolVersion": "2024-11-05",
                 "capabilities": {
-                    "tools": {}
+                    "tools": {},
+                    "resources": {}
                 },
                 "serverInfo": {
                     "name": "Task Manager MCP Server",
@@ -306,7 +308,56 @@ async def mcp_handler(request: Dict[str, Any]):
             }
         }
     
-    # List Tools
+    # List Resources - CRÍTICO para widgets
+    elif method == "resources/list":
+        card_html = create_simple_card_html(tasks_db)
+        return {
+            "jsonrpc": "2.0",
+            "id": request_id,
+            "result": {
+                "resources": [
+                    {
+                        "uri": "ui://widget/task-manager.html",
+                        "name": "Task Manager Widget",
+                        "description": "Widget interactivo para gestionar tareas",
+                        "mimeType": "text/html+skybridge"
+                    }
+                ]
+            }
+        }
+    
+    # Read Resource - Devuelve el HTML del widget
+    elif method == "resources/read":
+        uri = params.get("uri")
+        if uri == "ui://widget/task-manager.html":
+            card_html = create_simple_card_html(tasks_db)
+            return {
+                "jsonrpc": "2.0",
+                "id": request_id,
+                "result": {
+                    "contents": [
+                        {
+                            "uri": "ui://widget/task-manager.html",
+                            "mimeType": "text/html+skybridge",
+                            "text": card_html,
+                            "_meta": {
+                                "openai/widgetPrefersBorder": True
+                            }
+                        }
+                    ]
+                }
+            }
+        else:
+            return {
+                "jsonrpc": "2.0",
+                "id": request_id,
+                "error": {
+                    "code": -32602,
+                    "message": f"Resource not found: {uri}"
+                }
+            }
+    
+    # List Tools - Con metadata oficial de OpenAI
     elif method == "tools/list":
         return {
             "jsonrpc": "2.0",
@@ -319,6 +370,11 @@ async def mcp_handler(request: Dict[str, Any]):
                         "inputSchema": {
                             "type": "object",
                             "properties": {},
+                        },
+                        "_meta": {
+                            "openai/outputTemplate": "ui://widget/task-manager.html",
+                            "openai/toolInvocation/invoking": "Obteniendo tareas",
+                            "openai/toolInvocation/invoked": "Tareas obtenidas"
                         }
                     },
                     {
@@ -333,6 +389,11 @@ async def mcp_handler(request: Dict[str, Any]):
                                 "priority": {"type": "string", "enum": ["low", "medium", "high"], "default": "medium"},
                             },
                             "required": ["title"],
+                        },
+                        "_meta": {
+                            "openai/outputTemplate": "ui://widget/task-manager.html",
+                            "openai/toolInvocation/invoking": "Creando tarea",
+                            "openai/toolInvocation/invoked": "Tarea creada"
                         }
                     },
                     {
@@ -345,6 +406,11 @@ async def mcp_handler(request: Dict[str, Any]):
                                 "completed": {"type": "boolean", "description": "Estado completado"},
                             },
                             "required": ["task_id", "completed"],
+                        },
+                        "_meta": {
+                            "openai/outputTemplate": "ui://widget/task-manager.html",
+                            "openai/toolInvocation/invoking": "Actualizando tarea",
+                            "openai/toolInvocation/invoked": "Tarea actualizada"
                         }
                     }
                 ]
@@ -360,28 +426,7 @@ async def mcp_handler(request: Dict[str, Any]):
             incomplete = sum(1 for t in tasks_db if not t["completed"])
             completed = sum(1 for t in tasks_db if t["completed"])
             
-            # Crear lista formateada de tareas
-            tasks_text = f"📋 **Resumen de Tareas**\n\n"
-            tasks_text += f"⬜ Pendientes: **{incomplete}** | ✅ Completadas: **{completed}**\n\n"
-            
-            if incomplete > 0:
-                tasks_text += "**Tareas Pendientes:**\n"
-                for task in [t for t in tasks_db if not t["completed"]]:
-                    priority_emoji = {"high": "🔴", "medium": "🟡", "low": "🟢"}.get(task["priority"], "⚪")
-                    tasks_text += f"\n{priority_emoji} **{task['title']}**"
-                    if task.get("description"):
-                        tasks_text += f"\n   _{task['description']}_"
-                    if task.get("dueDate"):
-                        tasks_text += f"\n   📅 {task['dueDate']}"
-                    tasks_text += "\n"
-            
-            if completed > 0:
-                tasks_text += "\n**Tareas Completadas:**\n"
-                for task in [t for t in tasks_db if t["completed"]]:
-                    tasks_text += f"\n✅ ~~{task['title']}~~"
-            
-            tasks_text += f"\n\n🎨 **[Ver widget interactivo]({BASE_URL}/card)** con diseño completo"
-            
+            # Formato oficial OpenAI Apps SDK
             return {
                 "jsonrpc": "2.0",
                 "id": request_id,
@@ -389,9 +434,12 @@ async def mcp_handler(request: Dict[str, Any]):
                     "content": [
                         {
                             "type": "text",
-                            "text": tasks_text
+                            "text": f"Tienes {incomplete} tarea(s) pendiente(s) y {completed} completada(s)."
                         }
-                    ]
+                    ],
+                    "structuredContent": {
+                        "tasks": tasks_db
+                    }
                 }
             }
         
@@ -406,8 +454,7 @@ async def mcp_handler(request: Dict[str, Any]):
             }
             tasks_db.append(new_task)
             
-            priority_emoji = {"high": "🔴", "medium": "🟡", "low": "🟢"}.get(new_task["priority"], "⚪")
-            
+            # Formato oficial OpenAI Apps SDK
             return {
                 "jsonrpc": "2.0",
                 "id": request_id,
@@ -415,9 +462,12 @@ async def mcp_handler(request: Dict[str, Any]):
                     "content": [
                         {
                             "type": "text",
-                            "text": f"✓ Tarea creada: {priority_emoji} **{new_task['title']}**\n\n🔗 Ver todas las tareas: {BASE_URL}/widget"
+                            "text": f"Tarea creada: \"{new_task['title']}\"."
                         }
-                    ]
+                    ],
+                    "structuredContent": {
+                        "tasks": tasks_db
+                    }
                 }
             }
         
@@ -437,9 +487,9 @@ async def mcp_handler(request: Dict[str, Any]):
                 }
             
             task["completed"] = completed
-            status_emoji = "✅" if completed else "⬜"
             status_text = "completada" if completed else "pendiente"
             
+            # Formato oficial OpenAI Apps SDK
             return {
                 "jsonrpc": "2.0",
                 "id": request_id,
@@ -447,9 +497,12 @@ async def mcp_handler(request: Dict[str, Any]):
                     "content": [
                         {
                             "type": "text",
-                            "text": f"{status_emoji} Tarea marcada como {status_text}: **{task['title']}**\n\n🔗 Ver todas las tareas: {BASE_URL}/widget"
+                            "text": f"Tarea \"{task['title']}\" marcada como {status_text}."
                         }
-                    ]
+                    ],
+                    "structuredContent": {
+                        "tasks": tasks_db
+                    }
                 }
             }
     
