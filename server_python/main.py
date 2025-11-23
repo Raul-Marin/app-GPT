@@ -299,6 +299,7 @@ async def mcp_handler(request: Dict[str, Any]):
             incomplete = sum(1 for t in tasks_db if not t["completed"])
             completed = sum(1 for t in tasks_db if t["completed"])
             
+            # Formato alternativo: embedded resource
             return {
                 "jsonrpc": "2.0",
                 "id": request_id,
@@ -306,11 +307,13 @@ async def mcp_handler(request: Dict[str, Any]):
                     "content": [
                         {
                             "type": "text",
-                            "text": f"Tienes {incomplete} tarea(s) pendiente(s) y {completed} completada(s).",
-                            "_meta": {
-                                "openai/outputTemplate": {
-                                    "html": widget_html
-                                }
+                            "text": f"Tienes {incomplete} tarea(s) pendiente(s) y {completed} completada(s)."
+                        },
+                        {
+                            "type": "resource",
+                            "resource": {
+                                "uri": f"data:text/html;base64,{__import__('base64').b64encode(widget_html.encode()).decode()}",
+                                "mimeType": "text/html"
                             }
                         }
                     ]
@@ -336,11 +339,13 @@ async def mcp_handler(request: Dict[str, Any]):
                     "content": [
                         {
                             "type": "text",
-                            "text": f"✓ Tarea creada: {new_task['title']}",
-                            "_meta": {
-                                "openai/outputTemplate": {
-                                    "html": widget_html
-                                }
+                            "text": f"✓ Tarea creada: {new_task['title']}"
+                        },
+                        {
+                            "type": "resource",
+                            "resource": {
+                                "uri": f"data:text/html;base64,{__import__('base64').b64encode(widget_html.encode()).decode()}",
+                                "mimeType": "text/html"
                             }
                         }
                     ]
@@ -373,11 +378,13 @@ async def mcp_handler(request: Dict[str, Any]):
                     "content": [
                         {
                             "type": "text",
-                            "text": f"✓ Tarea marcada como {status}: {task['title']}",
-                            "_meta": {
-                                "openai/outputTemplate": {
-                                    "html": widget_html
-                                }
+                            "text": f"✓ Tarea marcada como {status}: {task['title']}"
+                        },
+                        {
+                            "type": "resource",
+                            "resource": {
+                                "uri": f"data:text/html;base64,{__import__('base64').b64encode(widget_html.encode()).decode()}",
+                                "mimeType": "text/html"
                             }
                         }
                     ]
