@@ -1,3 +1,4 @@
+import { useState, useEffect } from "react";
 import { Badge } from "@openai/apps-sdk-ui/components/Badge";
 import { Button } from "@openai/apps-sdk-ui/components/Button";
 import { Calendar, CheckCircle, Circle } from "@openai/apps-sdk-ui/components/Icon";
@@ -11,8 +12,32 @@ interface Task {
   priority: "low" | "medium" | "high";
 }
 
-// Obtener datos de tareas desde el window object (inyectados por el servidor MCP)
-const tasks: Task[] = (window as any).__TASK_DATA__ || [
+// Extender el tipo Window para incluir openai
+declare global {
+  interface Window {
+    __TASK_DATA__?: Task[];
+    openai?: {
+      toolOutput?: {
+        tasks?: Task[];
+      };
+      callTool?: (name: string, args: any) => Promise<any>;
+    };
+  }
+}
+
+const priorityColors = {
+  high: "error" as const,
+  medium: "warning" as const,
+  low: "success" as const,
+};
+
+const priorityLabels = {
+  high: "Alta",
+  medium: "Media",
+  low: "Baja",
+};
+
+const defaultTasks: Task[] = [
   {
     id: "1",
     title: "Revisar propuesta de diseño",
@@ -39,19 +64,68 @@ const tasks: Task[] = (window as any).__TASK_DATA__ || [
   },
 ];
 
-const priorityColors = {
-  high: "error" as const,
-  medium: "warning" as const,
-  low: "success" as const,
-};
-
-const priorityLabels = {
-  high: "Alta",
-  medium: "Media",
-  low: "Baja",
-};
-
 export function App() {
+  // Inicializar desde window.openai.toolOutput o __TASK_DATA__ o defaults
+  const [tasks, setTasks] = useState<Task[]>(() => {
+    if (typeof window !== "undefined") {
+      return (
+        window.openai?.toolOutput?.tasks ||
+        window.__TASK_DATA__ ||
+        defaultTasks
+      );
+    }
+    return defaultTasks;
+  });
+
+  // Escuchar eventos de actualización desde ChatGPT
+  useEffect(() => {
+    const handleSetGlobals = (event: any) => {
+      const globals = event.detail?.globals;
+      if (globals?.toolOutput?.tasks) {
+        setTasks(globals.toolOutput.tasks);
+      }
+    };
+
+    window.addEventListener("openai:set_globals", handleSetGlobals);
+
+    return () => {
+      window.removeEventListener("openai:set_globals", handleSetGlobals);
+    };
+  }, []);
+
+  // Función para llamar a tools (completar tarea)
+  const handleToggleTask = async (taskId: string, currentCompleted: boolean) => {
+    // Actualización optimista
+    setTasks((prev) =>
+      prev.map((task) =>
+        task.id === taskId ? { ...task, completed: !currentCompleted } : task
+      )
+    );
+
+    // Llamar al MCP tool si está disponible
+    if (window.openai?.callTool) {
+      try {
+        const response = await window.openai.callTool("update_task_status", {
+          task_id: taskId,
+          completed: !currentCompleted,
+        });
+
+        // Actualizar con la respuesta del servidor
+        if (response?.structuredContent?.tasks) {
+          setTasks(response.structuredContent.tasks);
+        }
+      } catch (error) {
+        console.error("Error updating task:", error);
+        // Revertir en caso de error
+        setTasks((prev) =>
+          prev.map((task) =>
+            task.id === taskId ? { ...task, completed: currentCompleted } : task
+          )
+        );
+      }
+    }
+  };
+
   const incompleteTasks = tasks.filter((t) => !t.completed);
   const completedTasks = tasks.filter((t) => t.completed);
 
@@ -77,7 +151,11 @@ export function App() {
             <h2 className="heading-sm mb-3">Pendientes</h2>
             <div className="space-y-3">
               {incompleteTasks.map((task) => (
-                <TaskCard key={task.id} task={task} />
+                <TaskCard
+                  key={task.id}
+                  task={task}
+                  onToggle={handleToggleTask}
+                />
               ))}
             </div>
           </div>
@@ -89,7 +167,11 @@ export function App() {
             <h2 className="heading-sm mb-3 text-tertiary">Completadas</h2>
             <div className="space-y-3">
               {completedTasks.map((task) => (
-                <TaskCard key={task.id} task={task} />
+                <TaskCard
+                  key={task.id}
+                  task={task}
+                  onToggle={handleToggleTask}
+                />
               ))}
             </div>
           </div>
@@ -109,7 +191,13 @@ export function App() {
   );
 }
 
-function TaskCard({ task }: { task: Task }) {
+function TaskCard({
+  task,
+  onToggle,
+}: {
+  task: Task;
+  onToggle: (taskId: string, currentCompleted: boolean) => void;
+}) {
   const formatDate = (dateStr: string) => {
     const date = new Date(dateStr);
     return date.toLocaleDateString("es-ES", {
@@ -128,6 +216,7 @@ function TaskCard({ task }: { task: Task }) {
         <button
           className="mt-0.5 text-secondary hover:text-primary transition-colors"
           aria-label={task.completed ? "Marcar como pendiente" : "Marcar como completada"}
+          onClick={() => onToggle(task.id, task.completed)}
         >
           {task.completed ? (
             <CheckCircle className="size-5 text-success" />

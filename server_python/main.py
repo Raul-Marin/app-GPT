@@ -326,11 +326,11 @@ async def mcp_handler(request: Dict[str, Any]):
             }
         }
     
-    # Read Resource - Devuelve el HTML del widget
+    # Read Resource - Devuelve el HTML del widget principal de React
     elif method == "resources/read":
         uri = params.get("uri")
         if uri == "ui://widget/task-manager.html":
-            card_html = create_simple_card_html(tasks_db)
+            widget_html = create_widget_html(tasks_db)
             return {
                 "jsonrpc": "2.0",
                 "id": request_id,
@@ -339,9 +339,9 @@ async def mcp_handler(request: Dict[str, Any]):
                         {
                             "uri": "ui://widget/task-manager.html",
                             "mimeType": "text/html+skybridge",
-                            "text": card_html,
+                            "text": widget_html,
                             "_meta": {
-                                "openai/widgetPrefersBorder": True
+                                "openai/widgetPrefersBorder": False
                             }
                         }
                     ]
