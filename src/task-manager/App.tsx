@@ -1,4 +1,4 @@
-import { useState, useEffect } from "react";
+import React, { useState, useEffect } from "react";
 import { Badge } from "@openai/apps-sdk-ui/components/Badge";
 import { Button } from "@openai/apps-sdk-ui/components/Button";
 import { Calendar, CheckCircle, Circle } from "@openai/apps-sdk-ui/components/Icon";
@@ -26,7 +26,7 @@ declare global {
 }
 
 const priorityColors = {
-  high: "error" as const,
+  high: "danger" as const,
   medium: "warning" as const,
   low: "success" as const,
 };
