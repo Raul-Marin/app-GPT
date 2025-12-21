@@ -238,6 +238,16 @@ async def health():
     return {"status": "healthy", "tasks_count": len(tasks_db)}
 
 
+@app.get("/.well-known/openai-apps-challenge")
+async def verify_domain():
+    """Verificación de dominio para OpenAI Apps"""
+    from fastapi.responses import PlainTextResponse
+    verification_file = Path(__file__).parent.parent / ".well-known" / "openai-apps-challenge"
+    if verification_file.exists():
+        return PlainTextResponse(content=verification_file.read_text().strip())
+    raise HTTPException(status_code=404, detail="Verification file not found")
+
+
 @app.get("/tasks", response_model=List[Task])
 async def get_tasks():
     """Obtener todas las tareas"""
