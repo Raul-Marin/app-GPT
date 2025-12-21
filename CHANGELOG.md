@@ -45,7 +45,6 @@ y este proyecto sigue [Semantic Versioning](https://semver.org/spec/v2.0.0.html)
 - TUTORIAL.md con guía paso a paso
 - PROJECT_STRUCTURE.md con arquitectura detallada
 - DEPLOY_RENDER.md para despliegue en Render
-- NGROK_SETUP.md para tunneling local
 - EXAMPLES.md con casos de uso
 - OPCIONES_CHATGPT.md con opciones de integración
 
@@ -75,7 +74,6 @@ y este proyecto sigue [Semantic Versioning](https://semver.org/spec/v2.0.0.html)
 ### Added
 - Card HTML simple para testing de widgets
 - Test interface local para simular ChatGPT
-- Scripts de testing: `test-chatgpt-local.sh`, `test-mcp-protocol.sh`
 
 ### Fixed
 - Problemas de embedding de HTML en ChatGPT

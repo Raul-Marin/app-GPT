@@ -66,33 +66,29 @@ Deberías ver el widget en `http://localhost:4444/task-manager-[hash].html`
 
 ## 🌐 Conectar con ChatGPT
 
-### Opción A: ngrok (Recomendado para pruebas)
-
-1. Instala ngrok: https://ngrok.com/download
-
-2. Expón el servidor:
-```bash
-ngrok http 8000
-```
-
-3. Copia la URL: `https://xxxx.ngrok-free.app`
-
-4. En ChatGPT:
-   - Settings → Connectors
-   - Add Connector
-   - URL: `https://xxxx.ngrok-free.app/mcp`
-
-### Opción B: Probar localmente
-
-Si solo quieres ver el widget funcionando:
+Para usar la aplicación con ChatGPT, necesitas desplegarla en producción (por ejemplo, en Render.com). Para desarrollo local puedes probar el widget directamente:
 
 1. Abre: http://localhost:4444/
 2. Busca el archivo `task-manager-[hash].html`
 3. Ábrelo en el navegador
 
+### Desplegar en Render.com
+
+Para usar con ChatGPT, despliega tu aplicación en Render.com:
+
+1. Sube tu código a GitHub
+2. Ve a [Render.com](https://render.com) y crea una cuenta
+3. Crea un nuevo **Web Service** y conecta tu repositorio
+4. Configura:
+   - **Build Command:** `npm install && npm run build && pip install -r server_python/requirements.txt`
+   - **Start Command:** `uvicorn server_python.main:app --host 0.0.0.0 --port $PORT`
+   - **Environment:** Python 3
+5. Añade variable de entorno: `BASE_URL` = `https://tu-app.onrender.com`
+6. En ChatGPT, añade el connector con la URL: `https://tu-app.onrender.com/mcp`
+
 ## 💬 Probar en ChatGPT
 
-Una vez conectado el MCP:
+Una vez desplegado y conectado el MCP:
 
 1. Inicia una conversación
 2. Click en "More" (tres puntos)

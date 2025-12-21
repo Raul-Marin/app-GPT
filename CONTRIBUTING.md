@@ -357,8 +357,8 @@ curl -X POST http://localhost:8000/mcp \
 
 ### Testing en ChatGPT
 
-1. Usa ngrok para exponer tu servidor local
-2. Configura el connector en ChatGPT
+1. Despliega tu aplicación en Render.com (o similar) para obtener una URL pública
+2. Configura el connector en ChatGPT con la URL de producción
 3. Prueba los comandos en una conversación
 
 ---

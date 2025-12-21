@@ -276,43 +276,26 @@ Endpoints disponibles:
 
 ## 🌐 Integración con ChatGPT
 
-### Con ngrok (Desarrollo)
+Para conectar tu aplicación con ChatGPT, necesitas desplegarla en producción. La opción recomendada es usar Render.com:
 
-1. Instala ngrok: https://ngrok.com/download
-
-2. Expón tu servidor:
-
-```bash
-ngrok http 8000
-```
-
-3. Copia la URL pública: `https://xxxx.ngrok-free.app`
-
-4. En ChatGPT:
+1. Ve a [Render.com](https://render.com) y crea una cuenta
+2. Crea un nuevo **Web Service** y conecta tu repositorio de GitHub
+3. Configura:
+   - **Build Command:** `npm install && npm run build && pip install -r server_python/requirements.txt`
+   - **Start Command:** `uvicorn server_python.main:app --host 0.0.0.0 --port $PORT`
+   - **Environment:** Python 3
+4. Añade variable de entorno: `BASE_URL` = `https://tu-app.onrender.com`
+5. En ChatGPT:
    - Ve a **Settings** → **Connectors**
    - Click **"Add Connector"**
-   - Pega: `https://xxxx.ngrok-free.app/mcp`
-   - Guarda
-
-5. En una conversación:
+   - URL: `https://tu-app.onrender.com/mcp`
+   - Guarda y recarga
+6. En una conversación:
    - Click en **"More"** (tres puntos)
    - Selecciona tu connector
    - Pregunta: "Show me my tasks"
 
-### Con Deploy en Producción
-
-Para producción, puedes deployar en:
-
-- **Render**: https://render.com
-- **Railway**: https://railway.app
-- **Fly.io**: https://fly.io
-- **Heroku**: https://heroku.com
-
-**Importante**: Configura la variable de entorno:
-
-```bash
-BASE_URL=https://tu-dominio.com
-```
+**Nota:** También puedes usar Railway, Fly.io u otros servicios similares. Solo asegúrate de configurar la variable de entorno `BASE_URL` correctamente.
 
 ## 🎨 Personalización
 
@@ -442,9 +425,7 @@ client = AsyncIOMotorClient("mongodb://...")
    curl http://localhost:8000/mcp
    ```
 
-2. Asegúrate de haber añadido el connector correctamente
-
-3. Verifica que ngrok esté activo
+2. Asegúrate de haber añadido el connector correctamente con la URL correcta de producción
 
 ### Errores de CORS
 

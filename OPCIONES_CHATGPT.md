@@ -75,27 +75,9 @@ Como acabas de ver, tu servidor responde correctamente a todas las llamadas. El 
 
 ---
 
-### **Opción 3: ngrok Plan Básico ($8/mes)**
+## 🎯 Recomendación
 
-Si prefieres mantener tu servidor local:
-
-✅ **Ventajas:**
-- URL fija que no cambia
-- Sin página de advertencia
-- Puedes modificar código en tiempo real
-- Múltiples túneles
-
-📝 **Pasos:**
-
-1. Upgrade en: https://dashboard.ngrok.com/billing/plan
-2. Obtienes dominio personalizado: `your-app.ngrok.app`
-3. Inicia con: `ngrok http 8000 --domain=your-app.ngrok.app`
-
----
-
-## 🎯 Mi Recomendación
-
-**Para ti, recomiendo Opción 1 (Render):**
+**Para producción, recomiendo Opción 1 (Render):**
 
 ✅ GRATIS
 ✅ URL permanente
@@ -126,12 +108,7 @@ curl -X POST http://localhost:8000/tasks \
   }'
 ```
 
-### 3. **Simular ChatGPT:**
-```bash
-./test-chatgpt-local.sh
-```
-
-### 4. **Ver Tareas (JSON):**
+### 3. **Ver Tareas (JSON):**
 ```bash
 curl http://localhost:8000/tasks | python3 -m json.tool
 ```

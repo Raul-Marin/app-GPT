@@ -271,7 +271,8 @@ app-GPT/
 ├── TUTORIAL.md                    # Tutorial completo
 ├── PROJECT_STRUCTURE.md           # Estructura detallada
 ├── DEPLOY_RENDER.md               # Guía de despliegue
-├── NGROK_SETUP.md                 # Configuración ngrok
+├── EXAMPLES.md                    # Ejemplos de uso
+├── OPCIONES_CHATGPT.md            # Opciones de integración
 └── README.md                      # Este archivo
 ```
 
@@ -432,7 +433,6 @@ const handleToggleTask = async (taskId: string) => {
 ### Infraestructura
 - **Render** - Cloud hosting
 - **GitHub** - Version control
-- **ngrok** - Tunneling (desarrollo local)
 
 ### Protocolos
 - **MCP** - Model Context Protocol
@@ -446,7 +446,6 @@ const handleToggleTask = async (taskId: string) => {
 - [**TUTORIAL.md**](./TUTORIAL.md) - Tutorial completo paso a paso
 - [**PROJECT_STRUCTURE.md**](./PROJECT_STRUCTURE.md) - Arquitectura detallada
 - [**DEPLOY_RENDER.md**](./DEPLOY_RENDER.md) - Guía de despliegue
-- [**NGROK_SETUP.md**](./NGROK_SETUP.md) - Configuración ngrok
 - [**EXAMPLES.md**](./EXAMPLES.md) - Ejemplos de uso
 
 ### Enlaces Externos
